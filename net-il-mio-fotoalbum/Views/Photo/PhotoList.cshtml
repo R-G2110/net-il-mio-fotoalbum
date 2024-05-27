@@ -1,0 +1,86 @@
+﻿@model List<Photo>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<h1 class="text-center mt-5"><strong>Photo List</strong></h1>
+<div class="card my-5">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="@Url.Action("CreatePhoto", "Photo")" class="btn btn-primary">+ Add new photo</a>
+            }
+        </div>
+        <div>
+            <form asp-action="Search" method="post" class="d-flex">
+                <input onkeyup="searchPizza()" id="searchInput" type="text" name="searchString" class="form-control" placeholder="Search photo here..." />
+                <button type="submit" class="btn btn-primary ms-1"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-warning text-center" role="alert">
+                @if (!string.IsNullOrEmpty(ViewData["SearchMessage"] as string))
+                {
+                    <span>@ViewData["SearchMessage"]</span>
+                }
+                else
+                {
+                    <span>Non ci sono pizze disponibili.</span>
+                }
+            </div>
+        }
+        else
+        {
+            <table class="table table-striped table-hover" id="pizzaTable">
+                <thead>
+                    <tr>
+                        <th>
+                            Title
+                            <button onclick="toggleSortOrder(0)" class="btn btn-sm btn-light">▲▼</button>
+                        </th>
+                        <th>Description</th>
+                        <th style="width: 100px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var photo in Model)
+                    {
+                        <tr style="cursor: pointer;">
+                            <td>@photo.Title</td>
+                            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                @photo.Description
+                            </td>
+                           
+                            <td class="actions-column">
+                                <div class="d-flex justify-content-evenly align-items-center">
+                                    <a href="@Url.Action("GetPhoto", "Photo", new { id = photo.Id })" class="text-primary mx-1"><i class="fa-regular fa-eye"></i></a>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a href="@Url.Action("Edit", "Photo", new { id = photo.Id })" class="text-warning mx-1"><i class="fa-regular fa-pen-to-square"></i></a>
+                                        <a onclick="showDeleteModal('@Url.Action("Delete", "Photo", new { id = photo.Id })', '@photo.Title')" class="text-danger mx-1"><i class="fa-solid fa-trash-can"></i></a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button id="closeAlertButton" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Include delete modal -->
+
+
+<!-- Include pizzaScript.js file -->

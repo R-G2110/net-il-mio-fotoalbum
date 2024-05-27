@@ -1,0 +1,80 @@
+﻿@using net_il_mio_fotoalbum.Data
+@model PhotoFormModel
+
+@{
+    bool isEditMode = Model != null && Model.Photo.Id != 0;
+    ViewData["Title"] = isEditMode ? "Edit Photo" : "Create Photo";
+}
+
+<style>
+    .category-label {
+        cursor: pointer;
+    }
+</style>
+
+<h1 class="text-center mt-5"><strong>@ViewData["Title"]</strong></h1>
+
+<div class="card p-3 my-5">
+    <form asp-controller="Photo" asp-action="@(isEditMode ? "UpdatePhoto" : "CreatePhoto")" method="post" enctype="multipart/form-data" class="row g-3">
+        <div class="form-group col-md-12">
+            <label asp-for="Photo.Title">Photo title:</label>
+            <input asp-for="Photo.Title" class="form-control mt-2 @(ViewData.ModelState["Title"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+            <span asp-validation-for="Photo.Title" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-12">
+            @if (Model != null && Model.Photo.ImageFile != null && !string.IsNullOrEmpty(Model.Photo.ImgSrc))
+            {
+                <img src="@Model?.Photo.ImgSrc" class="img-fluid" alt="Image preview" />
+            }
+            <label asp-for="Photo.ImageFile">Upload Image:</label>
+            <input asp-for="Photo.ImageFile" class="form-control mt-2 @(ViewData.ModelState["ImageFile"]?.Errors.Count > 0 ? "is-invalid" : "")" type="file" />
+            <span asp-validation-for="Photo.ImageFile" class="text-danger"></span>
+        </div>
+        <div class="form-group col-md-12">
+            <label asp-for="Photo.Description">Description:</label>
+            <textarea asp-for="Photo.Description" class="form-control mt-2 @(ViewData.ModelState["Description"]?.Errors.Count > 0 ? "is-invalid" : "")"></textarea>
+            <span asp-validation-for="Photo.Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-12">
+            <label>Categories:</label>
+            <div class="row mt-2">
+                @if (Model?.Categories != null && Model.Categories.Any())
+                {
+                    var categories = Model.Categories;
+                    int columns = 4;
+                    int itemsPerColumn = (int)Math.Ceiling((double)categories.Count / columns);
+                    for (int i = 0; i < columns; i++)
+                    {
+                        <div class="col-md-3">
+                            @foreach (var category in categories.Skip(i * itemsPerColumn).Take(itemsPerColumn))
+                            {
+                                var categoryId = $"category_{category.Value}";
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" role="switch" type="checkbox" name="SelectedCategories" value="@category.Value" id="@categoryId"
+                                    @(Model.SelectedCategories.Contains(category.Value) ? "checked" : "") />
+                                    <label class="form-check-label category-label" for="@categoryId">@category.Text</label>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Nessuna categoria disponibile</p>
+                }
+            </div>
+        </div>
+
+        <div class="form-group col-12">
+            <label asp-for="Photo.IsVisible">Show to all (make it public):</label>
+            <input asp-for="Photo.IsVisible" class="form-check-input mt-2 @(ViewData.ModelState["IsVisible"]?.Errors.Count > 0 ? "is-invalid" : "")" type="checkbox" />
+            <span asp-validation-for="Photo.IsVisible" class="text-danger"></span>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end mt-5">
+            <button type="submit" class="btn btn-primary mx-1">Save</button>
+            <a asp-action="PhotoList" class="btn btn-secondary mx-1">Go back</a>
+        </div>
+    </form>
+</div>
