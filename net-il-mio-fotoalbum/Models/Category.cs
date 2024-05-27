@@ -10,10 +10,5 @@ namespace net_il_mio_fotoalbum.Models
 
         public List<Photo> Photos { get; set; }
 
-        public Category() { }
-        public Category(string title) : this()
-        {
-            Title = title;
-        }
     }
 }

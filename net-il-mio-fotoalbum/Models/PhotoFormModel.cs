@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
+using net_il_mio_fotoalbum.Data;
 using System.IO;
 
 namespace net_il_mio_fotoalbum.Models
@@ -12,6 +12,11 @@ namespace net_il_mio_fotoalbum.Models
         public List<string> SelectedCategories { get; set; }
         public IFormFile ImageFormFile { get; set; }
 
+        public PhotoFormModel()
+        {
+            // Costruttore vuoto
+        }
+
         public PhotoFormModel(Photo photo, List<SelectListItem> categories)
         {
             Photo = photo;
@@ -19,15 +24,30 @@ namespace net_il_mio_fotoalbum.Models
             SelectedCategories = new List<string>();
         }
 
+        public PhotoFormModel(Photo photo)
+        {
+            Photo = photo;
+        }
+
         public void CreateCategories()
         {
-            SelectedCategories ??= new List<string>();
-            foreach (var category in Categories)
+            this.Categories = new List<SelectListItem>();
+            if (this.SelectedCategories == null)
+                this.SelectedCategories = new List<string>();
+            var categoriesFromDB = PhotoManager.GetAllCategories();
+            foreach (var category in categoriesFromDB) // tutti gli ingredienti possibili: i1, i2, i3, ... i10
             {
-                bool isSelected = SelectedCategories.Contains(category.Value);
-                category.Selected = isSelected;
+                bool isSelected = this.SelectedCategories.Contains(category.Id.ToString()); // this.Pizza.Ingredients?.Any(i => i.Id == ingrendient.Id) == true;
+                this.Categories.Add(new SelectListItem() // lista degli elementi selezionabili
+                {
+                    Text = category.Title, // Testo visualizzato
+                    Value = category.Id.ToString(), // SelectListItem vuole una generica stringa, non un int
+                    Selected = isSelected // es. i1, i5, i9
+                });
+                  this.SelectedCategories.Add(category.Id.ToString()); // lista degli elementi selezionati
             }
         }
+        
 
         public byte[] SetImageFileFromFormFile()
         {

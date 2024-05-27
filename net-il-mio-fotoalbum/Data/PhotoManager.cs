@@ -51,21 +51,41 @@ namespace net_il_mio_fotoalbum.Data
             using PhotoDbContext db = new PhotoDbContext();
             return db.Categories.ToList();
         }
-        
 
-        public static void InsertPhoto(Photo photo, object value)
+
+        public static void InsertPhoto(Photo photo, List<string> selectedCategories)
         {
+
             using PhotoDbContext db = new PhotoDbContext();
+            photo.Categories = new List<Category>();
+            if (selectedCategories != null)
+            {
+                // Trasformiamo gli ID scelti in ingredienti da aggiungere tra i riferimenti in Pizza
+                foreach (var category in selectedCategories)
+                {
+                    int id = int.Parse(category);
+                    // NON usiamo un GetIngredientById() perché userebbe un db context diverso
+                    // e ciò causerebbe errore in fase di salvataggio - usiamo lo stesso context all'interno della stessa operazione
+                    var categoryFromDb = db.Categories.FirstOrDefault(x => x.Id == id);
+                    if (categoryFromDb != null)
+                    {
+                        photo.Categories.Add(categoryFromDb);
+                    }
+                }
+            }
             db.Photos.Add(photo);
             db.SaveChanges();
+            
         }
 
-        public static bool UpdatePhoto(int id, Photo photo)
+
+
+        public static bool UpdatePhoto(int id, Photo photo, List<string> selectedCategories)
         {
             try
             {
                 using PhotoDbContext db = new PhotoDbContext();
-                var existingPhoto = db.Photos.FirstOrDefault(p => p.Id == id);
+                var existingPhoto = db.Photos.Include(p => p.Categories).FirstOrDefault(p => p.Id == id);
                 if (existingPhoto == null)
                     return false;
 
@@ -73,7 +93,20 @@ namespace net_il_mio_fotoalbum.Data
                 existingPhoto.Description = photo.Description;
                 existingPhoto.ImageFile = photo.ImageFile;
                 existingPhoto.IsVisible = photo.IsVisible;
-                existingPhoto.Categories = photo.Categories;
+
+                existingPhoto.Categories.Clear();
+                if (selectedCategories != null)
+                {
+                    foreach (var category in selectedCategories)
+                    {
+                        int categoryId = int.Parse(category);
+                        var categoryFromDb = db.Categories.FirstOrDefault(x => x.Id == categoryId);
+                        if (categoryFromDb != null)
+                        {
+                            existingPhoto.Categories.Add(categoryFromDb);
+                        }
+                    }
+                }
 
                 db.SaveChanges();
                 return true;
@@ -84,6 +117,7 @@ namespace net_il_mio_fotoalbum.Data
                 return false;
             }
         }
+
 
         public static bool DeletePhoto(int id)
         {

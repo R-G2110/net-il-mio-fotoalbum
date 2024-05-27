@@ -59,7 +59,7 @@ namespace net_il_mio_fotoalbum.Controllers
             Photo p = new Photo();
             List<Category> categories = PhotoManager.GetAllCategories();
             var model = new PhotoFormModel(p, categories.Select(c => new SelectListItem { Text = c.Title, Value = c.Id.ToString() }).ToList());
-            return View("PhotoForm", model); 
+            return View("PhotoForm", model);
         }
 
         [HttpPost]
@@ -67,25 +67,37 @@ namespace net_il_mio_fotoalbum.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult CreatePhoto(PhotoFormModel photoToInsert)
         {
-            if (ModelState.IsValid == false)
+            if (!ModelState.IsValid)
             {
-                photoToInsert.CreateCategories(); // Aggiornamento delle categorie
-                return View("CreatePhoto", photoToInsert);
+                photoToInsert.CreateCategories();
+                return View("PhotoForm", photoToInsert);
             }
+            PhotoManager.InsertPhoto(photoToInsert.Photo, photoToInsert.SelectedCategories);
 
-            return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "Photo saved successfully.";
+            return RedirectToAction("PhotoList");
+
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin, SuperAdmin")]
         public IActionResult UpdatePhoto(int id)
         {
-            var photo = PhotoManager.GetPhoto(id);
+            var photo = PhotoManager.GetPhoto(id, includeReferences: true);
             if (photo == null)
                 return NotFound();
+
             List<Category> categories = PhotoManager.GetAllCategories();
-            var model = new PhotoFormModel(photo, categories.Select(c => new SelectListItem { Text = c.Title, Value = c.Id.ToString() }).ToList());
-            return View(model);
+            var selectedCategoryIds = photo.Categories.Select(c => c.Id.ToString()).ToList();
+
+            PhotoFormModel model = new PhotoFormModel(photo, categories.Select(c => new SelectListItem
+            {
+                Text = c.Title,
+                Value = c.Id.ToString(),
+                Selected = selectedCategoryIds.Contains(c.Id.ToString())
+            }).ToList());
+
+            return View("PhotoForm", model);
         }
 
         [HttpPost]
@@ -93,19 +105,22 @@ namespace net_il_mio_fotoalbum.Controllers
         [Authorize(Roles = "Admin, SuperAdmin")]
         public IActionResult UpdatePhoto(int id, PhotoFormModel photoToUpdate)
         {
-            if (ModelState.IsValid == false)
+            if (!ModelState.IsValid == false)
             {
-                photoToUpdate.CreateCategories(); // Aggiornamento delle categorie
-                return View("UpdatePhoto", photoToUpdate);
+                photoToUpdate.CreateCategories();
+                return View("PhotoForm", photoToUpdate);
             }
 
-            var modified = PhotoManager.UpdatePhoto(id, photoToUpdate.Photo);
+            var modified = PhotoManager.UpdatePhoto(id, photoToUpdate.Photo, photoToUpdate.SelectedCategories);
             if (modified)
             {
-                return RedirectToAction("Index");
+                TempData["SuccessMessage"] = "Photo modified successfully.";
+                return RedirectToAction("PhotoList");
             }
             else
+            {
                 return NotFound();
+            }
         }
 
         [HttpPost]
@@ -119,7 +134,9 @@ namespace net_il_mio_fotoalbum.Controllers
                 return RedirectToAction("Index");
             }
             else
+            {
                 return NotFound();
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
