@@ -67,7 +67,7 @@ namespace net_il_mio_fotoalbum.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult CreatePhoto(PhotoFormModel photoToInsert)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 photoToInsert.CreateCategories();
                 return View("PhotoForm", photoToInsert);
@@ -131,7 +131,8 @@ namespace net_il_mio_fotoalbum.Controllers
             var deleted = PhotoManager.DeletePhoto(id);
             if (deleted)
             {
-                return RedirectToAction("Index");
+                TempData["SuccessMessage"] = "Photo deleted successfully.";
+                return RedirectToAction("PhotoList");
             }
             else
             {

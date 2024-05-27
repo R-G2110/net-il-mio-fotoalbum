@@ -12,7 +12,6 @@
     }
 </style>
 
-<!-- Table -->
 <h1 class="text-center mt-5"><strong>@ViewData["Title"]</strong></h1>
 
 <div class="card p-3 my-5">
@@ -36,8 +35,6 @@
             <textarea asp-for="Photo.Description" class="form-control mt-2" rows="3"></textarea>
             <span asp-validation-for="Photo.Description" class="text-danger"></span>
         </div>
-
-
         <div class="form-group col-md-12">
             <label>Categories:</label>
             <div class="row mt-2">
@@ -54,7 +51,7 @@
                                 var categoryId = $"category_{category.Value}";
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" role="switch" type="checkbox" name="SelectedCategories" value="@category.Value" id="@categoryId"
-                                    @(Model.SelectedCategories.Contains(category.Value) ? "checked" : "") />
+                                    @(category.Selected ? "checked" : "") />
                                     <label class="form-check-label category-label" for="@categoryId">@category.Text</label>
                                 </div>
                             }
@@ -67,28 +64,22 @@
                 }
             </div>
         </div>
-
         <div class="form-group col-12">
             <label asp-for="Photo.IsVisible">Show to all (make it public):</label>
             <input asp-for="Photo.IsVisible" class="form-check-input mt-2 @(ViewData.ModelState["IsVisible"]?.Errors.Count > 0 ? "is-invalid" : "")" type="checkbox" />
             <span asp-validation-for="Photo.IsVisible" class="text-danger"></span>
         </div>
-
         <div class="col-12 d-flex justify-content-end mt-5">
             <button type="submit" class="btn btn-primary mx-1">Save</button>
             <a asp-action="PhotoList" class="btn btn-secondary mx-1">Go back</a>
         </div>
     </form>
 </div>
-<!-- /Table -->
-
-<!-- Alert -->
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div id="dangerAlert" class="alert alert-danger lert-dismissible fade show" role="alert">
+    <div id="dangerAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
         @TempData["ErrorMessage"]
         <button id="closeAlertButton" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-<!-- /Alert -->

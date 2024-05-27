@@ -29,7 +29,7 @@
                 }
                 else
                 {
-                    <span>Non ci sono pizze disponibili.</span>
+                    <span>No photos available.</span>
                 }
             </div>
         }
@@ -54,14 +54,14 @@
                             <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 @photo.Description
                             </td>
-                           
+
                             <td class="actions-column">
                                 <div class="d-flex justify-content-evenly align-items-center">
                                     <a href="@Url.Action("GetPhoto", "Photo", new { id = photo.Id })" class="text-primary mx-1"><i class="fa-regular fa-eye"></i></a>
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <a href="@Url.Action("UpdatePhoto", "Photo", new { id = photo.Id })" class="text-warning mx-1"><i class="fa-regular fa-pen-to-square"></i></a>
-                                        <a onclick="showDeleteModal('@Url.Action("Delete", "Photo", new { id = photo.Id })', '@photo.Title')" class="text-danger mx-1"><i class="fa-solid fa-trash-can"></i></a>
+                                        <a onclick="showDeleteModal('@Url.Action("DeletePhoto", "Photo", new { id = photo.Id })', '@photo.Title')" class="text-danger mx-1"><i class="fa-solid fa-trash-can"></i></a>
                                     }
                                 </div>
                             </td>
@@ -74,13 +74,20 @@
 </div>
 @if (TempData["SuccessMessage"] != null)
 {
-    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button id="closeAlertButton" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div id="successAlert" class="alert alert-success alert-dismissible fade show d-flex justify-content-between" role="alert">
+        <div class="left">
+            @TempData["SuccessMessage"]
+        </div>
+        <div class="right">
+            <span id="countdown">2</span> seconds remaining.
+            <button id="closeAlertButton" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 }
 
-<!-- Include delete modal -->
 
+<!-- Delete Modal -->
+@Html.Partial("_deleteModal")
 
-<!-- Include pizzaScript.js file -->
+<!-- Include photoScript.js file -->
+<script src="~/js/photoScript.js"></script>
