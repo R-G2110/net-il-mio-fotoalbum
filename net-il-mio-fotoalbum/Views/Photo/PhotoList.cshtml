@@ -58,7 +58,7 @@
                             <td class="actions-column">
                                 <div class="d-flex justify-content-evenly align-items-center">
                                     <a href="@Url.Action("GetPhoto", "Photo", new { id = photo.Id })" class="text-primary mx-1"><i class="fa-regular fa-eye"></i></a>
-                                    @if (User.IsInRole("Admin"))
+                                    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
                                     {
                                         <a href="@Url.Action("UpdatePhoto", "Photo", new { id = photo.Id })" class="text-warning mx-1"><i class="fa-regular fa-pen-to-square"></i></a>
                                         <a onclick="showDeleteModal('@Url.Action("DeletePhoto", "Photo", new { id = photo.Id })', '@photo.Title')" class="text-danger mx-1"><i class="fa-solid fa-trash-can"></i></a>

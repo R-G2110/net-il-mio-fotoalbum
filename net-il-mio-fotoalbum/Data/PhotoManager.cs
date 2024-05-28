@@ -20,10 +20,15 @@ namespace net_il_mio_fotoalbum.Data
             return db.Photos.Count();
         }
 
+        public static List<Photo> GetAllVisiblePhotos()
+        {
+            using PhotoDbContext db = new PhotoDbContext();
+            return db.Photos.Include(p => p.Categories).Where(p => p.IsVisible).ToList();
+        }
         public static List<Photo> GetAllPhotos()
         {
             using PhotoDbContext db = new PhotoDbContext();
-            return db.Photos.ToList();
+            return db.Photos.Include(p => p.Categories).ToList();
         }
 
         public static Photo GetPhoto(int id, bool includeReferences = true)

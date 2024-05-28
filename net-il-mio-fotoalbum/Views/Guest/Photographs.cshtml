@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Photographs";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card-container" id="photoCardsContainer">
+    <!-- Le cards verranno aggiunte qui tramite JavaScript -->
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Funzione per caricare le foto e visualizzarle come cards
+        async function loadPhotos() {
+            try {
+                const response = await axios.get('https://localhost:7243/api/PhotoWebApi/GetAllPhotos');
+                const photos = response.data;
+
+                const photoCardsContainer = document.getElementById('photoCardsContainer');
+
+                photos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.classList.add('photo-card');
+                    card.classList.add('card');
+                    card.innerHTML = `
+                                <img src="${photo.imageUrl}" class="card-img-top" alt="${photo.title} image">
+                                <div class="card-body">
+                                    <h5 class="card-title">${photo.title}</h5>
+                                    <p class="card-text">${photo.description}</p>
+                                </div>
+                            `;
+                    photoCardsContainer.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Errore nel caricamento delle foto:', error);
+            }
+        }
+
+        // Carica le foto al caricamento della pagina
+        loadPhotos();
+    </script>
+}

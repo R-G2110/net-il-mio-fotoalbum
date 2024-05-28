@@ -16,3 +16,56 @@ html {
 body {
   margin-bottom: 60px;
 }
+header {
+    height: 70px;
+    background-color: burlywood;
+}
+
+.wrapper {
+    display:flex;
+
+}
+aside {
+    width: 200px;
+    height: 100vh;
+    padding: 20px;
+    background-color: burlywood;
+    
+}
+main {
+    width: 90%;
+    margin: 30px auto;
+    padding: 0px 100px;
+}
+
+/* CSS per visualizzare le cards in orizzontale con massimo 6 cards per riga */
+.card-container {
+    display: flex;
+    flex-wrap: wrap; /* Per consentire il wrap delle cards */
+    gap: 10px; /* Spazio tra le cards */
+    justify-content: space-between; /* Per distribuire uniformemente le cards */
+}
+
+.photo-card {
+    width: calc(50% - 10px); /* Larghezza del 50% - spazio tra le cards */
+    margin-bottom: 20px; /* Spazio sotto ogni card */
+}
+
+@media (min-width: 768px) {
+    .photo-card {
+        width: calc(33.33% - 10px); /* Larghezza del 33.33% - spazio tra le cards */
+    }
+}
+
+@media (min-width: 992px) {
+    .photo-card {
+        width: calc(25% - 10px); /* Larghezza del 25% - spazio tra le cards */
+    }
+}
+
+@media (min-width: 1200px) {
+    .photo-card {
+        width: calc(20% - 10px); /* Larghezza del 20% - spazio tra le cards */
+    }
+}
+}

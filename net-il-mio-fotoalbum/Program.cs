@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using net_il_mio_fotoalbum.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace net_il_mio_fotoalbum
 {
@@ -19,7 +20,8 @@ namespace net_il_mio_fotoalbum
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            
+            builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -39,7 +41,7 @@ namespace net_il_mio_fotoalbum
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Category}/{action=Index}/{id?}");
+                pattern: "{controller=Guest}/{action=Index}/{id?}");
             app.MapRazorPages();
             app.Run();
         }

@@ -18,7 +18,7 @@ namespace net_il_mio_fotoalbum.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult Photographs()
         {
             return View();
         }
