@@ -1,0 +1,31 @@
+﻿@model net_il_mio_fotoalbum.Models.Photo
+
+@{
+    ViewData["Title"] = "Photo Details";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">@Model.Title</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.ImageFile != null && Model.ImageFile.Length > 0)
+        {
+            <img src="@Model.ImgSrc" class="img-fluid" alt="Photo" />
+        }
+        <p class="card-text mt-3"><strong>Description:</strong> @Model.Description</p>
+        <p class="card-text"><strong>Visibility:</strong> @(Model.IsVisible ? "Visible" : "Hidden")</p>
+        <p class="card-text"><strong>Categories:</strong></p>
+        <ul class="list-unstyled">
+            @foreach (var category in Model.Categories)
+            {
+                <li>@category.Title</li>
+            }
+        </ul>
+    </div>
+    <div class="card-footer">
+        <a asp-action="PhotoList" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>

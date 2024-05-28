@@ -42,7 +42,7 @@ namespace net_il_mio_fotoalbum.Controllers
             {
                 var photo = PhotoManager.GetPhoto(id);
                 if (photo != null)
-                    return View(photo);
+                    return View("ShowPhoto", photo); 
                 else
                     return View("Errore", new ErrorViewModel($"La foto {id} non è stata trovata!"));
             }

@@ -14,7 +14,7 @@
         </div>
         <div>
             <form asp-action="Search" method="post" class="d-flex">
-                <input onkeyup="searchPizza()" id="searchInput" type="text" name="searchString" class="form-control" placeholder="Search photo here..." />
+                <input onkeyup="searchPhoto()" id="searchInput" type="text" name="searchString" class="form-control" placeholder="Search photo here..." />
                 <button type="submit" class="btn btn-primary ms-1"><i class="fa-solid fa-magnifying-glass"></i></button>
             </form>
         </div>
@@ -35,7 +35,7 @@
         }
         else
         {
-            <table class="table table-striped table-hover" id="pizzaTable">
+            <table class="table table-striped table-hover" id="photoTable">
                 <thead>
                     <tr>
                         <th>
@@ -91,3 +91,28 @@
 
 <!-- Include photoScript.js file -->
 <script src="~/js/photoScript.js"></script>
+
+<script>
+    function searchPhoto() {
+        // Ottenere il valore della barra di ricerca
+        var searchString = document.getElementById("searchInput").value.toLowerCase();
+
+        // Se la barra di ricerca è vuota, mostrare tutte le foto
+        if (!searchString.trim()) {
+            document.querySelectorAll("#photoTable tbody tr").forEach(function (row) {
+                row.style.display = "table-row";
+            });
+            return;
+        }
+
+        // Nascondere tutte le foto che non corrispondono alla ricerca
+        document.querySelectorAll("#photoTable tbody tr").forEach(function (row) {
+            var title = row.querySelector("td:first-child").textContent.toLowerCase();
+            if (title.includes(searchString)) {
+                row.style.display = "table-row";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+</script>

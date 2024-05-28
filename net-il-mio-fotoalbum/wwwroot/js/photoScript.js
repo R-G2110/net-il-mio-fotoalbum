@@ -1,7 +1,7 @@
 // Funzione per visualizzare il modale di conferma per la cancellazione
-function showDeleteModal(deleteUrl, photoTitle) {
+function showDeleteModal(deleteUrl, categoryTitle) {
     document.getElementById('deleteForm').action = deleteUrl;
-    document.getElementById('photoTitleToDelete').textContent = photoTitle;
+    document.getElementById('categoryTitleToDelete').textContent = categoryTitle;
     var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     deleteModal.show();
 }
@@ -31,3 +31,26 @@ document.addEventListener('DOMContentLoaded', function () {
         startAlertCountdown(2, countdown, closeButton);
     }
 });
+
+function searchPhoto() {
+    // Ottenere il valore della barra di ricerca
+    var searchString = document.getElementById("searchInput").value.toLowerCase();
+
+    // Se la barra di ricerca è vuota, mostrare tutte le foto
+    if (!searchString.trim()) {
+        document.querySelectorAll("#photoTable tbody tr").forEach(function (row) {
+            row.style.display = "table-row";
+        });
+        return;
+    }
+
+    // Nascondere tutte le foto che non corrispondono alla ricerca
+    document.querySelectorAll("#photoTable tbody tr").forEach(function (row) {
+        var title = row.querySelector("td:first-child").textContent.toLowerCase();
+        if (title.includes(searchString)) {
+            row.style.display = "table-row";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}

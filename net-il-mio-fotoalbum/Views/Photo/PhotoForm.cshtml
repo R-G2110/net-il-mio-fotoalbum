@@ -7,7 +7,7 @@
 }
 
 <style>
-    .category-label {
+    .pointer {
         cursor: pointer;
     }
 </style>
@@ -50,9 +50,9 @@
                             {
                                 var categoryId = $"category_{category.Value}";
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" role="switch" type="checkbox" name="SelectedCategories" value="@category.Value" id="@categoryId"
+                                    <input class="form-check-input pointer" role="switch" type="checkbox" name="SelectedCategories" value="@category.Value" id="@categoryId"
                                     @(category.Selected ? "checked" : "") />
-                                    <label class="form-check-label category-label" for="@categoryId">@category.Text</label>
+                                    <label class="form-check-label pointer" for="@categoryId">@category.Text</label>
                                 </div>
                             }
                         </div>

@@ -46,12 +46,6 @@ namespace net_il_mio_fotoalbum.Data
             return db.Photos.Where(p => p.Title == title).ToList();
         }
 
-        public static List<Category> GetAllCategories()
-        {
-            using PhotoDbContext db = new PhotoDbContext();
-            return db.Categories.ToList();
-        }
-
 
         public static void InsertPhoto(Photo photo, List<string> selectedCategories)
         {
@@ -77,7 +71,6 @@ namespace net_il_mio_fotoalbum.Data
             db.SaveChanges();
             
         }
-
 
 
         public static bool UpdatePhoto(int id, Photo photo, List<string> selectedCategories)
@@ -137,6 +130,46 @@ namespace net_il_mio_fotoalbum.Data
                 // Log exception here (ex)
                 return false;
             }
+        }
+
+        public static void InsertCategory(Category category)
+        {
+            using PhotoDbContext db = new PhotoDbContext();
+            db.Categories.Add(category);
+            db.SaveChanges();
+        }
+
+        public static List<Category> GetAllCategories()
+        {
+            using PhotoDbContext db = new PhotoDbContext();
+            return db.Categories.ToList();
+        }
+
+        public static Category GetCategory(int id)
+        {
+            using PhotoDbContext db = new PhotoDbContext();
+            return db.Categories.FirstOrDefault(c => c.Id == id);
+        }
+
+        public static void UpdateCategory(Category category)
+        {
+            using PhotoDbContext db = new PhotoDbContext();
+            db.Entry(category).State = EntityState.Modified;
+            db.SaveChanges();
+        }
+
+        public static bool DeleteCategory(int id)
+        {
+            using PhotoDbContext db = new PhotoDbContext();
+            var category = db.Categories.FirstOrDefault(c => c.Id == id);
+            if (category == null)
+            {
+                return false;
+            }
+
+            db.Categories.Remove(category);
+            db.SaveChanges();
+            return true;
         }
 
         public static void SeedPhotos()
