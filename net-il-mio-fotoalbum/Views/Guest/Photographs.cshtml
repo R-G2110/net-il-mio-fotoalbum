@@ -2,42 +2,54 @@
     ViewData["Title"] = "Photographs";
 }
 
+<!-- Modal -->
+<div class="modal fade" id="sendMessageModal" tabindex="-1" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendMessageModalLabel">Send Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sendMessageForm">
+                    <input type="hidden" id="photoId" value="">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address</label>
+                        <input type="email" class="form-control" id="email" aria-describedby="emailHelp" required>
+                        <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageContent" class="form-label">Message Content</label>
+                        <textarea class="form-control" id="messageContent" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <h1>@ViewData["Title"]</h1>
+<div class="row">
+    <div class="col-md-6">
+        <div class="input-group mb-3">
+            <input id="searchInput" type="text" class="form-control" placeholder="Search by title" aria-label="Search by title" aria-describedby="searchButton">
+            <button class="btn btn-primary ms-1" type="button" id="searchButton">Search</button>
+        </div>
+    </div>
+</div>
 
 <div class="card-container" id="photoCardsContainer">
-    <!-- Le cards verranno aggiunte qui tramite JavaScript -->
+    <!-- Photo cards will be added here via JavaScript -->
+</div>
+
+<!-- Success alert -->
+<div id="successAlert" class="alert alert-success alert-dismissible fade d-none" role="alert">
+    Message sent successfully!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
-        // Funzione per caricare le foto e visualizzarle come cards
-        async function loadPhotos() {
-            try {
-                const response = await axios.get('https://localhost:7243/api/PhotoWebApi/GetAllPhotos');
-                const photos = response.data;
-
-                const photoCardsContainer = document.getElementById('photoCardsContainer');
-
-                photos.forEach(photo => {
-                    const card = document.createElement('div');
-                    card.classList.add('photo-card');
-                    card.classList.add('card');
-                    card.innerHTML = `
-                                <img src="${photo.imageUrl}" class="card-img-top" alt="${photo.title} image">
-                                <div class="card-body">
-                                    <h5 class="card-title">${photo.title}</h5>
-                                    <p class="card-text">${photo.description}</p>
-                                </div>
-                            `;
-                    photoCardsContainer.appendChild(card);
-                });
-            } catch (error) {
-                console.error('Errore nel caricamento delle foto:', error);
-            }
-        }
-
-        // Carica le foto al caricamento della pagina
-        loadPhotos();
-    </script>
+    <script src="~/js/guestScript.js"></script>
 }

@@ -11,6 +11,7 @@ namespace net_il_mio_fotoalbum.Models
         public List<SelectListItem> Categories { get; set; }
         public List<string> SelectedCategories { get; set; }
         public IFormFile ImageFormFile { get; set; }
+        public string ApplicationUserId { get; internal set; }
 
         public PhotoFormModel()
         {

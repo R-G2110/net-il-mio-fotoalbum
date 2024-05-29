@@ -9,32 +9,28 @@ namespace net_il_mio_fotoalbum.Controllers
     [ApiController]
     public class PhotoWebApiController : ControllerBase
     {
-        [HttpGet("{name?}")]
-        public IActionResult GetAllPhotos(string? title = "") 
+        [HttpGet("{title?}")]
+        public IActionResult GetAllPhotos(string? title = "")
         {
             if (string.IsNullOrWhiteSpace(title))
                 return Ok(PhotoManager.GetAllVisiblePhotos());
-            return Ok(PhotoManager.GetPhotosByTitle(title));
+            return Ok(PhotoManager.GetAllVisiblePhotosByTitle(title));
         }
 
-        [HttpGet]
-        public IActionResult GetPhotoById(int id) 
+        [HttpPost]
+        public IActionResult SendMessage([FromBody] Message messageToSend)
         {
-            var photo = PhotoManager.GetPhoto(id);
-            if (photo == null)
-                return NotFound("Photo not found!");
-            return Ok(photo);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            
+            // Salva il messaggio nel database
+            MessageManager.SaveMessage(messageToSend);
+
+            return Ok("Message sent successfully!");
         }
 
-        [HttpGet("{name}")]
-        public IActionResult GetPhotoByTitle(string title) 
-        {
-            var photo = PhotoManager.GetPhotoByTitle(title);
-            if (photo == null)
-                return NotFound("Photo not found!");
-            return Ok(photo);
-        }
-
-        
     }
 }

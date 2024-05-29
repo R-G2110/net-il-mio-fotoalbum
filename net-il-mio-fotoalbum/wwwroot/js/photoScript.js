@@ -1,7 +1,8 @@
 // Funzione per visualizzare il modale di conferma per la cancellazione
 function showDeleteModal(deleteUrl, categoryTitle) {
+    console.log("sto cliccando");
     document.getElementById('deleteForm').action = deleteUrl;
-    document.getElementById('categoryTitleToDelete').textContent = categoryTitle;
+    document.getElementById('photoTitleToDelete').textContent = categoryTitle;
     var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     deleteModal.show();
 }

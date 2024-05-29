@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace net_il_mio_fotoalbum.Controllers
 {
@@ -24,31 +25,29 @@ namespace net_il_mio_fotoalbum.Controllers
         [Authorize(Roles = "Admin, SuperAdmin")]
         public IActionResult Index()
         {
-            return View(PhotoManager.GetAllPhotos());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ViewBag.UserId = userId;
+            var photos = PhotoManager.GetAllPhotos(userId);
+            return View(photos);
         }
+
 
         [HttpGet]
         [Authorize(Roles = "Admin, SuperAdmin")]
-        public IActionResult PhotoList()
-        {
-            return View(PhotoManager.GetAllPhotos());
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, SuperAdmin")]
-        public IActionResult GetPhoto(int id)
+        public async Task<IActionResult> GetPhoto(int id)
         {
             try
             {
-                var photo = PhotoManager.GetPhoto(id);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var photo = await PhotoManager.GetPhotoAsync(id, userId);
                 if (photo != null)
-                    return View("ShowPhoto", photo); 
+                    return View("ShowPhoto", photo);
                 else
-                    return View("Errore", new ErrorViewModel($"La foto {id} non è stata trovata!"));
+                    return View("Error", new ErrorViewModel($"La foto {id} non è stata trovata!"));
             }
             catch (Exception e)
             {
-                return View("Errore", new ErrorViewModel(e.Message));
+                return View("Error", new ErrorViewModel(e.Message));
             }
         }
 
@@ -56,34 +55,40 @@ namespace net_il_mio_fotoalbum.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult CreatePhoto()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ViewBag.ApplicationUserId = userId;
             Photo p = new Photo();
             List<Category> categories = PhotoManager.GetAllCategories();
             var model = new PhotoFormModel(p, categories.Select(c => new SelectListItem { Text = c.Title, Value = c.Id.ToString() }).ToList());
             return View("PhotoForm", model);
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public IActionResult CreatePhoto(PhotoFormModel photoToInsert)
+        public async Task<IActionResult> CreatePhoto(PhotoFormModel photoToInsert)
         {
-            if (ModelState.IsValid)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ViewBag.ApplicationUserId = userId;
+            photoToInsert.Photo.ApplicationUserId = userId;
+            if (!ModelState.IsValid)
             {
                 photoToInsert.CreateCategories();
-                return View("PhotoForm", photoToInsert);
+                await PhotoManager.InsertPhotoAsync(photoToInsert.Photo, photoToInsert.SelectedCategories);
+                TempData["SuccessMessage"] = "Photo saved successfully.";
+                return RedirectToAction("Index");
             }
-            PhotoManager.InsertPhoto(photoToInsert.Photo, photoToInsert.SelectedCategories);
 
-            TempData["SuccessMessage"] = "Photo saved successfully.";
-            return RedirectToAction("PhotoList");
-
+            return View("PhotoForm", photoToInsert);
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin, SuperAdmin")]
-        public IActionResult UpdatePhoto(int id)
+        public async Task<IActionResult> UpdatePhoto(int id)
         {
-            var photo = PhotoManager.GetPhoto(id, includeReferences: true);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var photo = await PhotoManager.GetPhotoAsync(id, userId, includeReferences: true);
             if (photo == null)
                 return NotFound();
 
@@ -103,19 +108,20 @@ namespace net_il_mio_fotoalbum.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, SuperAdmin")]
-        public IActionResult UpdatePhoto(int id, PhotoFormModel photoToUpdate)
+        public async Task<IActionResult> UpdatePhoto(int id, PhotoFormModel photoToUpdate)
         {
-            if (!ModelState.IsValid == false)
+            if (ModelState.IsValid)
             {
                 photoToUpdate.CreateCategories();
                 return View("PhotoForm", photoToUpdate);
             }
 
-            var modified = PhotoManager.UpdatePhoto(id, photoToUpdate.Photo, photoToUpdate.SelectedCategories);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var modified = await PhotoManager.UpdatePhotoAsync(id, photoToUpdate.Photo, photoToUpdate.SelectedCategories, userId);
             if (modified)
             {
                 TempData["SuccessMessage"] = "Photo modified successfully.";
-                return RedirectToAction("PhotoList");
+                return RedirectToAction("Index");
             }
             else
             {
@@ -126,13 +132,14 @@ namespace net_il_mio_fotoalbum.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public IActionResult DeletePhoto(int id)
+        public async Task<IActionResult> DeletePhoto(int id)
         {
-            var deleted = PhotoManager.DeletePhoto(id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var deleted = await PhotoManager.DeletePhotoAsync(id, userId);
             if (deleted)
             {
                 TempData["SuccessMessage"] = "Photo deleted successfully.";
-                return RedirectToAction("PhotoList");
+                return RedirectToAction("Index");
             }
             else
             {

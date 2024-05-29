@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using net_il_mio_fotoalbum.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using net_il_mio_fotoalbum.Models;
+
 
 namespace net_il_mio_fotoalbum
 {
@@ -9,14 +11,15 @@ namespace net_il_mio_fotoalbum
     {
         public static void Main(string[] args)
         {
-            PhotoManager.SeedCategories();
-            PhotoManager.SeedPhotos();
+            PhotoManager.SeedData();
+            
             var builder = WebApplication.CreateBuilder(args);
+                     //   var connectionString = builder.Configuration.GetConnectionString("NOMEVOSTROCONTEXTConnection") ?? throw new InvalidOperationException("Connection string 'NOMEVOSTROCONTEXTConnection' not found.");
             builder.Services.AddDbContext<PhotoDbContext>();
-            builder.Services
-                .AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<PhotoDbContext>();
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                            .AddRoles<IdentityRole>()
+                        .AddEntityFrameworkStores<PhotoDbContext>();
+
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();

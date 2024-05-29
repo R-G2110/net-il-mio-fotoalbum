@@ -1,90 +1,97 @@
-﻿using net_il_mio_fotoalbum.Models;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using net_il_mio_fotoalbum.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace net_il_mio_fotoalbum.Data
 {
-    public enum ResultType
-    {
-        OK,
-        Exception,
-        NotFound
-    }
-
     public class PhotoManager
     {
         public static int CountAllPhotos()
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             return db.Photos.Count();
+        }
+
+        public static List<Photo> GetAllPhotos(string userId = null)
+        {
+            using var db = new PhotoDbContext();
+            var query = db.Photos.Include(p => p.Categories).AsQueryable();
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                query = query.Where(p => p.ApplicationUserId == userId);
+            }
+
+            return query.ToList();
         }
 
         public static List<Photo> GetAllVisiblePhotos()
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             return db.Photos.Include(p => p.Categories).Where(p => p.IsVisible).ToList();
         }
-        public static List<Photo> GetAllPhotos()
+
+        public static List<Photo> GetAllVisiblePhotosByTitle(string title)
         {
-            using PhotoDbContext db = new PhotoDbContext();
-            return db.Photos.Include(p => p.Categories).ToList();
+            using var db = new PhotoDbContext();
+            return db.Photos.Include(p => p.Categories)
+                            .Where(p => p.IsVisible && p.Title.Contains(title))
+                            .ToList();
         }
 
-        public static Photo GetPhoto(int id, bool includeReferences = true)
+        public static async Task<Photo> GetPhotoAsync(int id, bool includeReferences = true)
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             if (includeReferences)
-                return db.Photos.Where(x => x.Id == id).Include(p => p.Categories).FirstOrDefault();
-            return db.Photos.FirstOrDefault(p => p.Id == id);
+                return await db.Photos.Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == id);
+            return await db.Photos.FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public static Photo GetPhotoByTitle(string title)
+        public static async Task<Photo> GetPhotoAsync(int id, string userId, bool includeReferences = true)
         {
-            using PhotoDbContext db = new PhotoDbContext();
-            return db.Photos.FirstOrDefault(p => p.Title == title);
+            using var db = new PhotoDbContext();
+            var query = db.Photos.AsQueryable();
+
+            if (includeReferences)
+                query = query.Include(p => p.Categories);
+
+            return await query.FirstOrDefaultAsync(p => p.Id == id && p.ApplicationUserId == userId);
         }
 
-        public static List<Photo> GetPhotosByTitle(string title)
+        public static async Task InsertPhotoAsync(Photo photo, List<string> selectedCategories)
         {
-            using PhotoDbContext db = new PhotoDbContext();
-            return db.Photos.Where(p => p.Title == title).ToList();
-        }
-
-
-        public static void InsertPhoto(Photo photo, List<string> selectedCategories)
-        {
-
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             photo.Categories = new List<Category>();
+
             if (selectedCategories != null)
             {
-                // Trasformiamo gli ID scelti in ingredienti da aggiungere tra i riferimenti in Pizza
                 foreach (var category in selectedCategories)
                 {
                     int id = int.Parse(category);
-                    // NON usiamo un GetIngredientById() perché userebbe un db context diverso
-                    // e ciò causerebbe errore in fase di salvataggio - usiamo lo stesso context all'interno della stessa operazione
-                    var categoryFromDb = db.Categories.FirstOrDefault(x => x.Id == id);
+                    var categoryFromDb = await db.Categories.FirstOrDefaultAsync(x => x.Id == id);
                     if (categoryFromDb != null)
                     {
                         photo.Categories.Add(categoryFromDb);
                     }
                 }
             }
+
             db.Photos.Add(photo);
-            db.SaveChanges();
-            
+            await db.SaveChangesAsync();
         }
 
-
-        public static bool UpdatePhoto(int id, Photo photo, List<string> selectedCategories)
+        public static async Task<bool> UpdatePhotoAsync(int id, Photo photo, List<string> selectedCategories, string userId)
         {
             try
             {
-                using PhotoDbContext db = new PhotoDbContext();
-                var existingPhoto = db.Photos.Include(p => p.Categories).FirstOrDefault(p => p.Id == id);
-                if (existingPhoto == null)
+                using var db = new PhotoDbContext();
+                var existingPhoto = await db.Photos.Include(p => p.Categories).FirstOrDefaultAsync(p => p.Id == id);
+
+                if (existingPhoto == null || existingPhoto.ApplicationUserId != userId)
                     return false;
 
                 existingPhoto.Title = photo.Title;
@@ -98,7 +105,7 @@ namespace net_il_mio_fotoalbum.Data
                     foreach (var category in selectedCategories)
                     {
                         int categoryId = int.Parse(category);
-                        var categoryFromDb = db.Categories.FirstOrDefault(x => x.Id == categoryId);
+                        var categoryFromDb = await db.Categories.FirstOrDefaultAsync(x => x.Id == categoryId);
                         if (categoryFromDb != null)
                         {
                             existingPhoto.Categories.Add(categoryFromDb);
@@ -106,31 +113,31 @@ namespace net_il_mio_fotoalbum.Data
                     }
                 }
 
-                db.SaveChanges();
+                await db.SaveChangesAsync();
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log exception here (ex)
                 return false;
             }
         }
 
-
-        public static bool DeletePhoto(int id)
+        public static async Task<bool> DeletePhotoAsync(int id, string userId)
         {
             try
             {
-                using PhotoDbContext db = new PhotoDbContext();
-                var photoToDelete = db.Photos.FirstOrDefault(p => p.Id == id);
+                using var db = new PhotoDbContext();
+                var photoToDelete = await db.Photos.FirstOrDefaultAsync(p => p.Id == id && p.ApplicationUserId == userId);
+
                 if (photoToDelete == null)
                     return false;
 
                 db.Photos.Remove(photoToDelete);
-                db.SaveChanges();
+                await db.SaveChangesAsync();
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log exception here (ex)
                 return false;
@@ -139,33 +146,33 @@ namespace net_il_mio_fotoalbum.Data
 
         public static void InsertCategory(Category category)
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             db.Categories.Add(category);
             db.SaveChanges();
         }
 
         public static List<Category> GetAllCategories()
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             return db.Categories.ToList();
         }
 
         public static Category GetCategory(int id)
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             return db.Categories.FirstOrDefault(c => c.Id == id);
         }
 
         public static void UpdateCategory(Category category)
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             db.Entry(category).State = EntityState.Modified;
             db.SaveChanges();
         }
 
         public static bool DeleteCategory(int id)
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
             var category = db.Categories.FirstOrDefault(c => c.Id == id);
             if (category == null)
             {
@@ -177,40 +184,159 @@ namespace net_il_mio_fotoalbum.Data
             return true;
         }
 
+        public static void SeedRoles()
+        {
+            using var context = new PhotoDbContext();
+            if (!context.Roles.Any())
+            {
+                var roles = new List<IdentityRole>
+                {
+                    new IdentityRole
+                    {
+                        Id = "1",
+                        Name = "Admin",
+                        NormalizedName = "ADMIN",
+                        ConcurrencyStamp = DateTime.Now.ToString("yyyy/MM/dd")
+                    },
+                    new IdentityRole
+                    {
+                        Id = "21",
+                        Name = "SuperAdmin",
+                        NormalizedName = "SUPERADMIN",
+                        ConcurrencyStamp = DateTime.Now.ToString("yyyy/MM/dd")
+                    }
+                };
+
+                context.Roles.AddRange(roles);
+                context.SaveChanges();
+            }
+        }
+
+        public static void SeedUsers()
+        {
+            using var context = new PhotoDbContext();
+            if (!context.Users.Any())
+            {
+                var adminUser = new ApplicationUser
+                {
+                    UserName = "admin@admin.com",
+                    Email = "admin@admin.com",
+                    NormalizedUserName = "ADMIN",
+                    NormalizedEmail = "ADMIN@ADMIN.COM",
+                    EmailConfirmed = true,
+                    SecurityStamp = Guid.NewGuid().ToString()
+                };
+
+                var superAdminUser = new ApplicationUser
+                {
+                    UserName = "superadmin@superadmin.com",
+                    Email = "superadmin@superadmin.com",
+                    NormalizedUserName = "SUPERADMIN",
+                    NormalizedEmail = "SUPERADMIN@SUPERADMIN.COM",
+                    EmailConfirmed = true,
+                    SecurityStamp = Guid.NewGuid().ToString()
+                };
+
+                var passwordHasher = new PasswordHasher<ApplicationUser>();
+                adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin123!");
+                superAdminUser.PasswordHash = passwordHasher.HashPassword(superAdminUser, "Admin123!");
+
+                context.Users.AddRange(adminUser, superAdminUser);
+                context.SaveChanges();
+
+                // Assegna i ruoli agli utenti creati
+                var adminRole = new IdentityUserRole<string>
+                {
+                    UserId = adminUser.Id,
+                    RoleId = "1" // Admin role
+                };
+
+                var superAdminRole = new IdentityUserRole<string>
+                {
+                    UserId = superAdminUser.Id,
+                    RoleId = "21" // SuperAdmin role
+                };
+
+                context.UserRoles.AddRange(adminRole, superAdminRole);
+                context.SaveChanges();
+            }
+        }
+
         public static void SeedPhotos()
         {
-            if (PhotoManager.CountAllPhotos() == 0)
+            using var db = new PhotoDbContext();
+            var user = db.Users.FirstOrDefault(u => u.UserName == "admin@admin.com");
+
+            if (user != null && !db.Photos.Any())
             {
-                //crea 5 foto
-                PhotoManager.InsertPhoto(new Photo { Title = "Sunset", Description = "Beautiful sunset over the hills", IsVisible = true}, new());
-                PhotoManager.InsertPhoto(new Photo { Title = "Mountains", Description = "Snow-capped mountains", IsVisible = true}, new());
-                PhotoManager.InsertPhoto(new Photo { Title = "Forest", Description = "Dense forest in the morning mist", IsVisible = true}, new());
-                PhotoManager.InsertPhoto(new Photo { Title = "Ocean", Description = "Clear blue ocean", IsVisible = true}, new());
-                PhotoManager.InsertPhoto(new Photo { Title = "Cityscape", Description = "City skyline at night", IsVisible = true}, new());
+                db.Photos.AddRange(
+                    new Photo
+                    {
+                        Title = "Sunset",
+                        Description = "Beautiful sunset over the hills",
+                        IsVisible = true,
+                        ApplicationUserId = user.Id
+                    },
+                    new Photo
+                    {
+                        Title = "Mountains",
+                        Description = "Snow-capped mountains",
+                        IsVisible = true,
+                        ApplicationUserId = user.Id
+                    },
+                    new Photo
+                    {
+                        Title = "Forest",
+                        Description = "Dense forest in the morning mist",
+                        IsVisible = true,
+                        ApplicationUserId = user.Id
+                    },
+                    new Photo
+                    {
+                        Title = "Ocean",
+                        Description = "Clear blue ocean",
+                        IsVisible = true,
+                        ApplicationUserId = user.Id
+                    },
+                    new Photo
+                    {
+                        Title = "Cityscape",
+                        Description = "City skyline at night",
+                        IsVisible = true,
+                        ApplicationUserId = user.Id
+                    }
+                );
+
+                db.SaveChanges();
             }
         }
 
         public static void SeedCategories()
         {
-            using PhotoDbContext db = new PhotoDbContext();
+            using var db = new PhotoDbContext();
 
-            // Controlla se ci sono già delle categorie nel database
             if (!db.Categories.Any())
             {
-                // Crea alcune categorie predefinite
                 var categories = new List<Category>
                 {
                     new Category { Title = "Nature" },
                     new Category { Title = "Urban" },
                     new Category { Title = "Abstract" },
                     new Category { Title = "Portrait" },
-                    new Category { Title = "Landscape" }
+                    new Category { Title = "Architecture" }
                 };
 
-                // Aggiunge le categorie al database
                 db.Categories.AddRange(categories);
                 db.SaveChanges();
             }
+        }
+
+        public static void SeedData()
+        {
+            SeedRoles();
+            SeedUsers();
+            SeedCategories();
+            SeedPhotos();
         }
     }
 }

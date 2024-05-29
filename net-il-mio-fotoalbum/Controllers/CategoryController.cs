@@ -8,20 +8,17 @@ namespace net_il_mio_fotoalbum.Controllers
 {
     public class CategoryController : Controller
     {
-        // GET: Category
         public IActionResult Index()
         {
             List<Category> categories = PhotoManager.GetAllCategories();
             return View(categories);
         }
 
-        // GET: Category/Create
         public IActionResult Create()
         {
             return View("CategoryForm", new Category());
         }
 
-        // POST: Category/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("Id,Title")] Category category)
@@ -44,7 +41,6 @@ namespace net_il_mio_fotoalbum.Controllers
             return View("CategoryForm", category);
         }
 
-        // GET: Category/Edit/5
         public IActionResult Edit(int id)
         {
             Category category = PhotoManager.GetCategory(id);
@@ -55,7 +51,6 @@ namespace net_il_mio_fotoalbum.Controllers
             return View("CategoryForm", category);
         }
 
-        // POST: Category/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, [Bind("Id,Title")] Category category)
@@ -83,7 +78,6 @@ namespace net_il_mio_fotoalbum.Controllers
             return View("CategoryForm", category);
         }
 
-        // POST: Category/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)

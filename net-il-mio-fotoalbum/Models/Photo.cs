@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace net_il_mio_fotoalbum.Models
 {
@@ -21,6 +22,10 @@ namespace net_il_mio_fotoalbum.Models
         public string ImgSrc => ImageFile != null ? $"data:image/png;base64,{Convert.ToBase64String(ImageFile)}" : "";
 
         public bool IsVisible { get; set; }
+
+        // Foreign key for ApplicationUser
+        public string ApplicationUserId { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
 
         public DateTime Timestamp { get; set; }
 
